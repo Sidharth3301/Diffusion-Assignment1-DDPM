@@ -83,7 +83,25 @@ class SimpleNet(nn.Module):
 
         ######## TODO ########
         # DO NOT change the code outside this part.
-
+        self.input_dim = dim_in
+        self.output_dim = dim_out
+        self.hidden_dims = dim_hids
+        self.timesteps = num_timesteps
+        
+        # Build the network layers
+        self.layers = nn.ModuleList()
+        
+        # Create dimension sequence: [dim_in, dim_hids[0], ..., dim_hids[-1], dim_out]
+        dims = [dim_in] + dim_hids + [dim_out]
+        
+        # Create TimeLinear layers with ReLU activations (except for the last layer)
+        for i in range(len(dims) - 1):
+            # Add TimeLinear layer
+            self.layers.append(TimeLinear(dim_in=dims[i], dim_out=dims[i+1], num_timesteps=num_timesteps))
+            # Add ReLU activation for all layers except the last one
+            if i < len(dims) - 2:
+                self.layers.append(nn.ReLU())
+        
         ######################
         
     def forward(self, x: torch.Tensor, t: torch.Tensor):
@@ -97,6 +115,12 @@ class SimpleNet(nn.Module):
         """
         ######## TODO ########
         # DO NOT change the code outside this part.
-
+        # Forward pass through all layers
+        for layer in self.layers:
+            if isinstance(layer, TimeLinear):
+                x = layer(x, t)
+            else:  # ReLU activation
+                x = layer(x)
+        
         ######################
         return x
