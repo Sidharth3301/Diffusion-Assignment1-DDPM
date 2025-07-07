@@ -81,14 +81,23 @@ class UNet(nn.Module):
                 
                 ######## TODO ########
                 # DO NOT change the code outside this part.
-                # Assignment 2. Implement random null conditioning in CFG training.
-                raise NotImplementedError("TODO")
+                # Assignment 2-2. Implement random null conditioning in CFG training.
+                # class_label = class_label.clone()
+                # Randomly set some class labels to 0 (null condition)
+                batch_sz    = class_label.size(0)
+                num_to_drop = int(batch_sz * self.cfg_dropout)
+                null_indices = torch.randperm(class_label.size(0))[:num_to_drop]
+                class_label[null_indices] = 0
                 #######################
             
             ######## TODO ########
             # DO NOT change the code outside this part.
-            # Assignment 2. Implement class conditioning
-            raise NotImplementedError("TODO")
+            # Assignment 2-1. Implement class conditioning
+            one_hot = F.one_hot(class_label, num_classes=self.class_embedding.num_embeddings)
+            one_hot = one_hot.to(x.dtype)  # Convert to the same dtype as x
+            class_emb = self.class_embedding(class_label)
+            temb = temb + class_emb.unsqueeze(-1).unsqueeze(-1)
+            
             #######################
 
         # Downsampling
